@@ -1,9 +1,11 @@
 import json
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.payment_repository import PaymentRepository
 from app.repositories.event_repository import EventRepository
 from app.repositories.recovery_repository import RecoveryRepository
 from app.models.payment_event import PaymentEvent
+from app.models.payment import Payment
 from app.core.logging import get_logger
 from datetime import datetime, timezone
 
