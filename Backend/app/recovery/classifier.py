@@ -18,13 +18,14 @@ class ClassificationResult:
 
 # Known Razorpay error codes -> root cause (checked first, higher confidence).
 _CODE_RULES: list[tuple[str, str]] = [
-    ("bad_request_error", "invalid_payment_details"),
     ("gateway_error", "temporary_bank_error"),
     ("server_error", "temporary_bank_error"),
+    ("bad_request_error", "temporary_bank_error"),
 ]
 
 # Keyword -> root cause, checked against lowercased "failure_code failure_reason".
 _KEYWORD_RULES: list[tuple[str, str]] = [
+    ("temporary", "temporary_bank_error"),
     ("insufficient", "insufficient_funds"),
     ("balance", "insufficient_funds"),
     ("timed out", "network_timeout"),
@@ -60,7 +61,7 @@ _STRATEGY_FOR_CAUSE: dict[str, str] = {
     "unknown": "temporary_failure",
 }
 
-_UNRECOVERABLE_CAUSES = {"invalid_payment_details", "suspected_risk"}
+_UNRECOVERABLE_CAUSES = {"suspected_risk"}
 
 
 class FailureClassifier:

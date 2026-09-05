@@ -204,18 +204,33 @@ async def _execute(
 
     elif action == "ESCALATE_TO_SUPPORT":
         from app.services.notification_service import NotificationService
+        from app.services.razorpay_service import RazorpayService
         from app.core.config import settings
         notif_svc = NotificationService(session)
         merchant_email = settings.SMTP_USER or settings.EMAIL_FROM or "support@merchant.com"
-        message = f"Payment recovery requires manual intervention. Payment: {payment_data.get('razorpay_payment_id')}, Amount: {payment_data.get('amount')}"
+        amount = payment_data.get("amount", 0)
+        amount_display = f"INR {amount // 100}" if amount >= 100 else f"INR {amount}"
+        message = f"Payment recovery requires attention. Payment ID: {payment_data.get('razorpay_payment_id')}, Amount: {amount_display}. Use the link below to complete the payment."
+        
+        rzp_svc = RazorpayService()
+        payment_url = None
+        if rzp_svc.configured and amount > 0:
+            link_res = rzp_svc.create_payment_link(
+                amount=amount,
+                description=f"Recovery for payment {payment_data.get('razorpay_payment_id', '')}",
+                customer_email=merchant_email,
+            )
+            payment_url = link_res.get("short_url")
+
         await notif_svc.send_notification(
             recovery_id=recovery.id if recovery else None,
             channel="email",
             recipient=merchant_email,
             message=message,
             template="escalation",
+            payment_url=payment_url,
         )
-        return {"status": "escalated"}
+        return {"status": "escalated", "payment_url": payment_url}
 
     elif action == "STOP_RECOVERY":
         return {"status": "stopped"}

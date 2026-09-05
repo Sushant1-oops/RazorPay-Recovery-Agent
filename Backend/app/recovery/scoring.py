@@ -33,7 +33,7 @@ class RecoveryScorer:
             "bank_decline": 5,
             "card_failure": 10,
             "expired_payment": 20,
-            "invalid_payment_details": -20,
+            "invalid_payment_details": 10,
             "suspected_risk": -30,
             "unknown": 0,
         }
