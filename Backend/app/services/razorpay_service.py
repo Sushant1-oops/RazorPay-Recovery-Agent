@@ -67,3 +67,37 @@ class RazorpayService:
             return {"status": "unknown", "safe_to_retry": False, "error": str(e)}
         status = payment.get("status", "unknown")
         return {"status": status, "safe_to_retry": status in ("failed", "created")}
+
+    def create_payment_link(
+        self,
+        amount: int,
+        currency: str = "INR",
+        description: str = "Payment Recovery Link",
+        customer_name: str | None = None,
+        customer_email: str | None = None,
+        customer_phone: str | None = None,
+    ) -> dict:
+        if not self.configured or amount <= 0:
+            return {}
+        try:
+            payload = {
+                "amount": amount,
+                "currency": currency,
+                "description": description,
+                "notify": {"sms": False, "email": False},
+                "reminder_enable": False,
+            }
+            cust = {}
+            if customer_name:
+                cust["name"] = customer_name
+            if customer_email:
+                cust["email"] = customer_email
+            if customer_phone:
+                cust["contact"] = customer_phone
+            if cust:
+                payload["customer"] = cust
+
+            return self.client.payment_link.create(payload)
+        except Exception as e:
+            logger.error("razorpay_create_payment_link_failed", error=str(e))
+            return {}

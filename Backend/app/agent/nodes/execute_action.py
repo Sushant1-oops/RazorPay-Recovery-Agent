@@ -139,6 +139,7 @@ async def _execute(
 
     elif action == "SEND_NOTIFICATION":
         from app.services.notification_service import NotificationService
+        from app.services.razorpay_service import RazorpayService
         notif_svc = NotificationService(session)
         customer_data = state.get("customer_data", {})
         message = _generate_customer_message(state)
@@ -148,17 +149,30 @@ async def _execute(
             channel = "mock"
             recipient = "customer@example.com"
 
+        rzp_svc = RazorpayService()
+        payment_url = None
+        amount = payment_data.get("amount", 0)
+        if rzp_svc.configured and amount > 0:
+            link_res = rzp_svc.create_payment_link(
+                amount=amount,
+                description=f"Recovery for order {payment_data.get('razorpay_order_id') or payment_data.get('razorpay_payment_id', '')}",
+                customer_email=recipient,
+            )
+            payment_url = link_res.get("short_url")
+
         notif = await notif_svc.send_notification(
             recovery_id=recovery.id if recovery else None,
             channel=channel,
             recipient=recipient,
             message=message,
             template=state.get("action_parameters", {}).get("template"),
+            payment_url=payment_url,
         )
-        return {"status": "sent", "notification_id": notif.id, "channel": channel}
+        return {"status": "sent", "notification_id": notif.id, "channel": channel, "payment_url": payment_url}
 
     elif action == "OFFER_ALTERNATIVE_PAYMENT":
         from app.services.notification_service import NotificationService
+        from app.services.razorpay_service import RazorpayService
         notif_svc = NotificationService(session)
         message = (
             "Your payment could not be completed. "
@@ -166,14 +180,27 @@ async def _execute(
         )
         customer_data = state.get("customer_data", {})
         recipient = customer_data.get("email") or "customer@example.com"
+
+        rzp_svc = RazorpayService()
+        payment_url = None
+        amount = payment_data.get("amount", 0)
+        if rzp_svc.configured and amount > 0:
+            link_res = rzp_svc.create_payment_link(
+                amount=amount,
+                description=f"Retry with alternative method for {payment_data.get('razorpay_order_id') or payment_data.get('razorpay_payment_id', '')}",
+                customer_email=recipient,
+            )
+            payment_url = link_res.get("short_url")
+
         notif = await notif_svc.send_notification(
             recovery_id=recovery.id if recovery else None,
             channel="email",
             recipient=recipient,
             message=message,
             template="alternative_method",
+            payment_url=payment_url,
         )
-        return {"status": "alternative_offered", "notification_id": notif.id}
+        return {"status": "alternative_offered", "notification_id": notif.id, "payment_url": payment_url}
 
     elif action == "ESCALATE_TO_SUPPORT":
         from app.services.notification_service import NotificationService
