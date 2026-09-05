@@ -1,0 +1,6 @@
+Generate a concise, professional payment recovery message.
+
+Do not expose internal system details.
+Do not claim payment success unless payment status confirms success.
+Do not request sensitive information such as passwords, CVV,
+OTP, or card credentials.
