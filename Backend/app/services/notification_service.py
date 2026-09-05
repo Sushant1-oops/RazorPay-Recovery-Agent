@@ -67,7 +67,7 @@ class NotificationService:
 
         target_email = recipient.strip() if recipient else ""
         # Fallback to configured SMTP user if recipient is empty, placeholder, or Razorpay test dummy
-        if not target_email or "@" not in target_email or target_email in ("void@razorpay.com", "customer@example.com"):
+        if not target_email or "@" not in target_email or target_email in ("void@razorpay.com", "customer@example.com", "support@merchant.com"):
             target_email = settings.SMTP_USER or settings.EMAIL_FROM
 
         def _send():

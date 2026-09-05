@@ -108,12 +108,10 @@ class PaymentService:
         from app.services.recovery_service import RecoveryService
 
         recovery_svc = RecoveryService(self.session)
-        # 1. Check if an active or prior recovery exists for this payment
+        # 1. Check if an active recovery exists for this payment
         existing = await self.recovery_repo.get_active_for_payment(payment.id)
-        if not existing:
-            existing = await self.recovery_repo.get_latest_for_payment(payment.id)
 
-        # 2. Check if any prior payment under the same Razorpay order already has a recovery
+        # 2. Check if any prior payment under the same Razorpay order already has an active recovery
         if not existing and payment.razorpay_order_id:
             prior_payments = await self.session.execute(
                 select(Payment).where(
@@ -123,8 +121,6 @@ class PaymentService:
             )
             for prior in prior_payments.scalars().all():
                 existing = await self.recovery_repo.get_active_for_payment(prior.id)
-                if not existing:
-                    existing = await self.recovery_repo.get_latest_for_payment(prior.id)
                 if existing:
                     break
 

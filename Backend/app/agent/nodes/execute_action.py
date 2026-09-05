@@ -204,12 +204,14 @@ async def _execute(
 
     elif action == "ESCALATE_TO_SUPPORT":
         from app.services.notification_service import NotificationService
+        from app.core.config import settings
         notif_svc = NotificationService(session)
+        merchant_email = settings.SMTP_USER or settings.EMAIL_FROM or "support@merchant.com"
         message = f"Payment recovery requires manual intervention. Payment: {payment_data.get('razorpay_payment_id')}, Amount: {payment_data.get('amount')}"
         await notif_svc.send_notification(
             recovery_id=recovery.id if recovery else None,
             channel="email",
-            recipient="support@merchant.com",
+            recipient=merchant_email,
             message=message,
             template="escalation",
         )
