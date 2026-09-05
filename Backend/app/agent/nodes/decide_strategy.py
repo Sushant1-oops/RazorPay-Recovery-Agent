@@ -103,6 +103,7 @@ async def decide_strategy(state: RecoveryState, session: AsyncSession) -> Recove
             "next_step": "finalize",
             "final_status": "exhausted",
             "explanation": "All strategy steps have been executed without recovery.",
+            "action": "STOP_RECOVERY",
         })
 
     logger.info("strategy_decided", strategy=strategy, action=state.get("action"))

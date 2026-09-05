@@ -9,6 +9,9 @@ logger = get_logger("agent.policy")
 
 async def policy_check(state: RecoveryState, session: AsyncSession) -> RecoveryState:
     """Validate the proposed action against recovery policies."""
+    if state.get("next_step") == "finalize" or state.get("final_status") is not None:
+        return state
+
     policy = RecoveryPolicy()
 
     payment_data = state.get("payment_data", {})

@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     EMAIL_PROVIDER: str = "mock"
     EMAIL_API_KEY: str = ""
     EMAIL_FROM: str = "noreply@recoveryagent.dev"
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
 
     MAX_RECOVERY_ATTEMPTS: int = 3
     MIN_RETRY_INTERVAL_SECONDS: int = 60
